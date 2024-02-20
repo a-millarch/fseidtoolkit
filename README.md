@@ -1,4 +1,4 @@
-# src
+# FSEID extractor
 
 Extracts and prepare data from FSEID dump
 
