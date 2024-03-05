@@ -1,12 +1,13 @@
-# FSEID extractor
+# FSEID toolkit
 
 Toolkit for FSEID-00006734 dump (early 2024)
 - Create patient mapping from raw files
-        Run: make mapping
-- Change CPR to IHDAC PID for raw files using the mapping
-        Run: make pid
+<br>> make mapping
+- Change CPR to IHDAC PID for raw files using the mapping 
+<br>> make pid
+
 - Slice raw files to specific population
-        Run: make slice
+<br>> make slice
 
 Make sure to update config file before running.
 
