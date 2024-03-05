@@ -1,6 +1,16 @@
 # FSEID extractor
 
-Extracts and prepare data from FSEID dump
+Toolkit for FSEID-00006734 dump (early 2024)
+- Create patient mapping from raw files
+        Run: make mapping
+- Change CPR to IHDAC PID for raw files using the mapping
+        Run: make pid
+- Slice raw files to specific population
+        Run: make slice
+
+Make sure to update config file before running.
+
+Docker: Run in interactive mode.
 
 ## Project structure
 
@@ -14,28 +24,13 @@ The directory structure of the project looks like this:
 │   ├── processed        <- The final, canonical data sets for modeling.
 │   └── raw              <- The original, immutable data dump.
 │
-├── docs                 <- Documentation folder
-│   │
-│   ├── index.md         <- Homepage for your documentation
-│   │
-│   ├── mkdocs.yml       <- Configuration file for mkdocs
-│   │
-│   └── source/          <- Source directory for documentation files
-│
 ├── models               <- Trained and serialized models, model predictions, or model summaries
 │
 ├── notebooks            <- Jupyter notebooks.
 │
 ├── pyproject.toml       <- Project configuration file
 │
-├── reports              <- Generated analysis as HTML, PDF, LaTeX, etc.
-│   └── figures          <- Generated graphics and figures to be used in reporting
-│
 ├── requirements.txt     <- The requirements file for reproducing the analysis environment
-|
-├── requirements_dev.txt <- The requirements file for reproducing the analysis environment
-│
-├── tests                <- Test files
 │
 ├── src  <- Source code for use in this project.
 │   │
