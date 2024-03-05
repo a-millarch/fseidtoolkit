@@ -9,7 +9,7 @@
 #################################################################################
 
 PROJECT_NAME = src
-PYTHON_VERSION = 3.10.12
+PYTHON_VERSION = 3.10.13
 PYTHON_INTERPRETER = python
 
 #################################################################################
@@ -26,9 +26,6 @@ requirements:
 	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
 	$(PYTHON_INTERPRETER) -m pip install -e .
 
-## Install Developer Python Dependencies
-dev_requirements: requirements
-	$(PYTHON_INTERPRETER) -m pip install .["dev"]
 
 ## Delete all compiled Python files
 clean:
@@ -41,8 +38,11 @@ clean:
 #################################################################################
 
 ## Process raw data into processed data
-data:
-	python $(PROJECT_NAME)/data/make_dataset.py
+cpr_mapping:
+	python $(PROJECT_NAME)/data/mapping_constructor.py
+subpop_files:
+	python $(PROJECT_NAME)/data/subpop_constructor.py
+
 
 #################################################################################
 # Documentation RULES                                                           #

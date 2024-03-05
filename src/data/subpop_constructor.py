@@ -1,5 +1,6 @@
 import numpy as np 
 import pandas as pd
+import os
 
 from src.utils.utils import cpr_fix
 
@@ -49,6 +50,8 @@ def main():
     chunk_filter_save(population_df, iter_csv_file_name = "epikur", filter_col ="CPR")
     chunk_filter_save(population_df, iter_csv_file_name = "t_adm", filter_col ="V_CPR")
     chunk_filter_save(population_df, iter_csv_file_name = "t_tumor", filter_col ="K_CPRNR")
+
+
 
 if __name__ == "__main__":
     main()

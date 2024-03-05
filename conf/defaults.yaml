@@ -1,0 +1,5 @@
+data_folder : "F:/sds_extract/FSEID-00006734/"
+input_extension : ".asc"
+interim_output_folder : "data/interim/cpr/chunks/"
+processed_output_path : "data/processed/mapping.pkl"
+encryption_key_path : 'data/dumps/cpmi.secret'
