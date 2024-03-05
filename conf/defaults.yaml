@@ -1,5 +1,25 @@
+#raw input data
 data_folder : "F:/sds_extract/FSEID-00006734/"
 input_extension : ".asc"
+chunksize : 10000000
+
+# interim, chunked mapping dir
 interim_output_folder : "data/interim/cpr/chunks/"
+
+# mapping table output dir
 processed_output_path : "data/processed/mapping.pkl"
+
+# processed files with replaced CPR column directory
+mapped_output_folder : "F:/sds_extract/FSEID-00006734/mapped/"
+format : parquet
+
+# path to encryption key
 encryption_key_path : 'data/dumps/cpmi.secret'
+
+# name of cpr containing files and their CPR-column names
+cpr_files:
+  kontakter: "cpr"
+  forloeb: "cpr"
+  epikur: "CPR"
+  t_adm: "V_CPR"
+  t_tumor: "K_CPRNR"

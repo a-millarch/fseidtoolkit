@@ -1,30 +1,35 @@
 import pandas as pd
 import os
+import yaml 
+
 from src.utils.utils import cpr_fix
 import src.utils.secret_pandas as sp
 
-data_folder = "F:/sds_extract/FSEID-00006734/"
-input_extension = ".asc"
-interim_output_folder = "data/interim/cpr/chunks/"
-processed_output_path = "data/processed/mapping.pkl"
-
-encryption_key_path = 'data/dumps/cpmi.secret'
-
-# Specify filename and CPR column name
-cpr_files = {  "kontakter" : "cpr",
-                    "forloeb" :"cpr",
-                    "epikur" : "CPR",
-                    "t_adm" : "V_CPR",
-                    "t_tumor" : "K_CPRNR" 
-                }
+with open('conf/defaults.yaml') as file:
+    cfg = yaml.safe_load(file)
+    
+cpr_files = cfg.get('cpr_files', {})
 
 def chunk_collect_single_column(file_dict:dict):
-    """ chunk through dataframe, keep only one column
-    expects latin-1 encoding and ; as delimiter
-    save to interim data dir"""
+    """
+    Chunk through a dataframe, keeping only one specified column.
+
+    Args:
+        file_dict (dict): A dictionary containing file names as keys and column names as values.
+
+    Notes:
+        expects data files to be encoded in Latin-1 and delimited by ';'.
+
+    Saves:
+        dfs with single column to the interim data directory.
+
+    Example:
+        >>> file_dict = {'data/raw/data_file.csv': 'CPR'}
+        >>> chunk_collect_single_column(file_dict)"""
+    
     for file, col_name in file_dict.items():
         print(f"chunking {file}")
-        iter_df = pd.read_csv(data_folder+file+input_extension, 
+        iter_df = pd.read_csv(cfg["data_folder"]+file+cfg["input_extension"], 
                             encoding='latin-1', delimiter=";",
                             usecols = [col_name],
                             skipinitialspace=True,
@@ -33,40 +38,29 @@ def chunk_collect_single_column(file_dict:dict):
         for chunk in iter_df:
             chunk = chunk.drop_duplicates(subset= col_name)
             chunk[file] = True
-            output_path = f"{interim_output_folder}/{file}.csv"
+            output_path = f"{cfg['interim_output_folder']}/{file}.csv"
             chunk.to_csv(output_path, sep=";"
                         , mode='a', header=not os.path.exists(output_path))        
-            
-def construct_mapping_b(file_dict:dict):
-    """ Expects files in interim folder"""
-    dfs=[]
-    for file, col_name in file_dict.items():
-        df = pd.read_csv(f"{interim_output_folder}/{file}.csv", sep=";")
-        df.rename(columns={col_name:"CPR"}, inplace=True)
 
-        df["CPR"] = df["CPR"].astype(str).str.rstrip(".0")
+def construct_mapping(file_dict: dict)-> pd.DataFrame:
+    """
+    Constructs a mapping DataFrame based on data from files specified in `file_dict`.
+    
+    Args:
+        file_dict (dict): A dictionary where keys are file names and values are column names.
 
-        df = cpr_fix(df,"CPR")
-        df = df.drop_duplicates(subset="CPR")
-        df = df[["CPR", file]]
-        dfs.append(df)
-        print(f"appended {file}")
-
-    mapping = dfs[0]
-    for d in dfs[1:]:
-        mapping = pd.merge(mapping, d, on="CPR", how ="outer")
-    print("finished mapping")
-    return mapping
-
-def construct_mapping(file_dict: dict):
+    Notes:
+        This function assumes that the data files are CSVs and 
+        reside in the interim output folder specified in the config (`cfg`).
+        Each file is expected to have a column with unique identifiers (i.e., CPR numbers).
+    """
     dfs = []
     for file, col_name in file_dict.items():
-        df = pd.read_csv(f"{interim_output_folder}/{file}.csv", sep=";", dtype={col_name:str})
+        df = pd.read_csv(f"{cfg['interim_output_folder']}/{file}.csv", sep=";", dtype={col_name:str})
         df.rename(columns={col_name: "CPR"}, inplace=True)
 
         # TODO: test if this line is obsolete now
         df["CPR"] = df["CPR"].astype(str).str.rstrip(".0")
-
         df = cpr_fix(df, "CPR")
         df = df.drop_duplicates(subset="CPR")
         df = df[["CPR", file]]
@@ -82,28 +76,24 @@ def construct_mapping(file_dict: dict):
 def main():
 
     # Collect only unique CPR's from each file
-    #chunk_collect_single_column(cpr_files)
+    chunk_collect_single_column(cpr_files)
     print("finished chunking")
 
     # Add all CPR-files together
     mapping = construct_mapping(cpr_files)
-    mapping.to_csv(f"{interim_output_folder}/mapping_interim.csv")
+    mapping.to_csv(f"{cfg['interim_output_folder']}/mapping_interim.csv")
 
     # Clean up    
-    mapping = mapping.fillna(False)
-    
-    # in some cases CPR was a float and thus the string contains .0, remove
-    #mapping["CPR"] = mapping["CPR"].astype(str)
-    #mapping["CPR"] = mapping["CPR"].str.rstrip(".0")
-    
+    mapping = mapping.fillna(False)  
     mapping = mapping.drop_duplicates()
     mapping.reset_index(drop=True)
 
     # Add encrypted identifier
-    mapping= sp.encrypt_to_new_col(mapping, 'CPR', 'PID', encryption_key_path)
+    mapping= sp.encrypt_to_new_col(mapping, 'CPR', 'PID', cfg['encryption_key_path'])
     print("saving")
+
     # Save result
-    mapping.to_pickle(processed_output_path)
+    mapping.to_pickle(cfg["processed_output_path"])
 
 if __name__ == "__main__":
     main()
