@@ -16,7 +16,7 @@ The directory structure of the project looks like this:
 
 ```txt
 
-├── Makefile             <- Makefile with convenience commands like `make data` or `make train`
+├── Makefile             <- Makefile with convenience commands 
 ├── README.md            <- The top-level README for developers using this project.
 ├── data
 │   ├── processed        <- The final, canonical data sets for modeling.
