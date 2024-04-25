@@ -31,6 +31,7 @@ def chunk_collect_single_column(file_dict:dict):
         print(f"chunking {file}")
         iter_df = pd.read_csv(cfg["data_folder"]+file+cfg["input_extension"], 
                             encoding='latin-1', delimiter=";",
+                            dtype={col_name:str},
                             usecols = [col_name],
                             skipinitialspace=True,
                             chunksize = 100000000)
@@ -54,29 +55,43 @@ def construct_mapping(file_dict: dict)-> pd.DataFrame:
         reside in the interim output folder specified in the config (`cfg`).
         Each file is expected to have a column with unique identifiers (i.e., CPR numbers).
     """
+    cpr_dfs=[]
     dfs = []
+    row_counter= 0
     for file, col_name in file_dict.items():
         df = pd.read_csv(f"{cfg['interim_output_folder']}/{file}.csv", sep=";", dtype={col_name:str})
         df.rename(columns={col_name: "CPR"}, inplace=True)
-
+        start_len = len(df)
         # TODO: test if this line is obsolete now
-        df["CPR"] = df["CPR"].astype(str).str.rstrip(".0")
+        #df["CPR"] = df["CPR"].str.rstrip(".0")
         df = cpr_fix(df, "CPR")
         df = df.drop_duplicates(subset="CPR")
         df = df[["CPR", file]]
         dfs.append(df)
+        rowdif = start_len -len(df)
+        row_counter = row_counter+ rowdif
         print(f"Appended {file}. Shape: {df.shape}. Head: \n{df.head()}")
+        print(f'{file} lost {rowdif} rows')
+        cpr_dfs.append(df[["CPR"]])
 
-    mapping = dfs[0]
-    for d in dfs[1:]:
-        mapping = pd.merge(mapping, d, on="CPR", how="outer")
+    print(f"lost {row_counter} rows")
+
+    mapping = pd.concat(cpr_dfs)
+    mapping = mapping.drop_duplicates(subset="CPR")
+    for df in dfs:
+        mapping = pd.merge(mapping, df, on="CPR", how="left")
+#    mapping = dfs[0]
+#    for d in dfs[1:]:
+#        mapping = pd.merge(mapping, d, on="CPR", how="outer")
     print("Finished mapping. Final shape: ", mapping.shape)
     return mapping     
-       
+
+
+
 def main():
 
     # Collect only unique CPR's from each file
-    chunk_collect_single_column(cpr_files)
+    #chunk_collect_single_column(cpr_files)
     print("finished chunking")
 
     # Add all CPR-files together
@@ -96,4 +111,5 @@ def main():
     mapping.to_pickle(cfg["processed_output_path"])
 
 if __name__ == "__main__":
-    main()
+    #main()
+    chunk_collect_single_column(cpr_files)
