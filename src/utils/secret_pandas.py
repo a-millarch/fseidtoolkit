@@ -75,7 +75,7 @@ def decrypt_df_columns(df, list_of_columns, secret_file_name_str):
         secret = get_secret(secret_file_name_str)
 
     # make the encryption object
-    obj = AES.new(bytes.fromhex(secret))
+    obj = AES.new(bytes.fromhex(secret),AES.MODE_ECB)
     
     for col in list_of_columns:
         df[col]= df[col].apply(lambda x: obj.decrypt(bytes.fromhex(x)).decode().strip())
